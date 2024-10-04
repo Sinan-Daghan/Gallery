@@ -1,0 +1,12 @@
+a {
+    all: unset;
+    height: 3rem;
+    display: grid;
+    place-content: center;
+    color: white;
+    font-size: 4rem;
+    cursor: pointer;
+}
+a:hover {
+    color: #335d92
+}
