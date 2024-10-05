@@ -6,6 +6,7 @@ export default function Home() {
     <main>
       <Title>Gallery</Title>
       <a href="/vector-grid">Vector Grid</a>
+      <a href="/australia">Australia</a>
     </main>
   );
 }

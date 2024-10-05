@@ -1,3 +1,9 @@
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3rem;
+}
 a {
     all: unset;
     height: 3rem;
