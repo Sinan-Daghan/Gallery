@@ -7,6 +7,7 @@ export default function Home() {
       <Title>Gallery</Title>
       <a href="/vector-grid">Vector Grid</a>
       <a href="/australia">Australia</a>
+      <a href="/trigonometry">Trigonometry</a>
     </main>
   );
 }
