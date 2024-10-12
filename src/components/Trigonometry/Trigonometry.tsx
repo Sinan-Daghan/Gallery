@@ -1,8 +1,11 @@
 import { onMount, createSignal } from 'solid-js';
+import Slider from '~/components/Slider/Slider';
 import './Trigonometry.css';
 
-const Tau = Math.PI * 2;
+const TAU = Math.PI * 2;
+const PI = Math.PI;
 
+// ClokLine instantiates a line with a circle that slides along it.
 class ClockLine {
     static length = 200;
 
@@ -18,10 +21,10 @@ class ClockLine {
         this.cos = Math.cos(angle) * ClockLine.length;
     }
 
-    drawDot(ctx: CanvasRenderingContext2D, scalar: number) {
+    drawCircle(ctx: CanvasRenderingContext2D, scalar: number) {
         ctx.beginPath();
         ctx.fillStyle = this.color;
-        ctx.arc(this.cos * scalar, this.sin * scalar, 5, 0, Tau);
+        ctx.arc(this.cos * scalar, this.sin * scalar, 5, 0, TAU);
         ctx.fill();
     }
 
@@ -37,21 +40,44 @@ class ClockLine {
 
 
 export default function Trigonometry() {
-    let canvasWidth = 800;
-    let canvasHeight = 800;
 
     const [canvasTop, setCanvasTop] = createSignal<HTMLCanvasElement | null>(null);
     const [canvasBottom, setCanvasBottom] = createSignal<HTMLCanvasElement | null>(null);
-
     let ctxTop : CanvasRenderingContext2D;
     let ctxBottom : CanvasRenderingContext2D;
 
-    const clockLines: ClockLine[] = [];
-    let dots = 20;
+    const canvasWidth = 800;
+    const halfCanvasWidth = canvasWidth / 2;
+    const canvasHeight = 800;
+    const halfCanvasHeight  = canvasHeight / 2;
+
+    const [lineCount, setlineCount] = createSignal(20);
+    const [offsetScalar, setOffsetScalar] = createSignal(1);
+
+    let clockLines: ClockLine[] = [];
+    let angleBetweenLines = PI / lineCount();
+    let clockAngle = 0;
+    const clockIncrement = PI / 180;
+
+
+    function createClockLines(lineCount: number): ClockLine[] {
+
+        ctxBottom.clearRect(-halfCanvasWidth, -halfCanvasHeight, canvasWidth, canvasHeight);
+        const degreesBetweenLines = 360 / lineCount;
+        const lines = [];
+
+        for (let line = 0 ; line < lineCount ; line++) {
+
+            const color = `hsl(${degreesBetweenLines * line}, 100%, 40%)`;
+            const clockLine = new ClockLine(angleBetweenLines * line, color);
+            clockLine.drawLine(ctxBottom);
+            lines.push(clockLine);
+        }
+        return lines;
+    }
+
 
     onMount(() => {
-        const halfCanvasWidth = canvasWidth / 2;
-        const halfCanvasHeight = canvasHeight / 2;
 
         const canvas = {
             top: canvasTop(),
@@ -67,50 +93,90 @@ export default function Trigonometry() {
         ctxTop.translate(halfCanvasWidth, halfCanvasHeight);
         ctxBottom.translate(halfCanvasWidth, halfCanvasHeight);
 
-        let clockAngle = 0;
-        const clockIncrement = Math.PI / 180;
-        const angleDelta = Math.PI / dots;
-
-        for (let i=0 ; i < dots ; i++) {
-            const color = `hsl(${360/dots * i}, 100%, 40%)`;
-            const clockLine = new ClockLine(angleDelta * i, color);
-            clockLines.push(clockLine);
-            clockLine.drawLine(ctxBottom);
-        }
+        clockLines = createClockLines(lineCount());
 
         function loop() {
+            clockAngle = (clockAngle + clockIncrement) % TAU;
+            ctxTop.clearRect(-halfCanvasWidth, -halfCanvasHeight, canvasWidth, canvasHeight);
+            const offset = offsetScalar();
 
-            clockAngle = (clockAngle + clockIncrement) % Tau;
+            const count = lineCount(); // Faster than calling lineCount() every time in the `for loop`.
+            for (let i=0; i < count ; i++) {
 
-            (ctxTop as CanvasRenderingContext2D).clearRect(-halfCanvasWidth, -halfCanvasHeight, canvasWidth, canvasHeight);
-
-            for (let i=0; i < dots ; i++) {
-                clockLines[i].
-                drawDot(
+                clockLines[i].drawCircle(
                     ctxTop,
-                    Math.sin(i * angleDelta + clockAngle)
+                    Math.sin(i * angleBetweenLines * offset + clockAngle )
                 );
             }
-
             window.requestAnimationFrame(loop);
         }
         window.requestAnimationFrame(loop);
     });
 
-    return(
-    <main>
-        <canvas
-          id="canvasTop"
-          ref={setCanvasTop}
-          width={canvasWidth}
-          height={canvasHeight}
-        ></canvas>
+    function handleLineCount(event: InputEvent) {
 
-        <canvas
-          ref={setCanvasBottom}
-          width={canvasWidth}
-          height={canvasHeight}
-        ></canvas>
-    </main>
+        const lineCount = (event.target as HTMLInputElement).valueAsNumber;
+        setlineCount(lineCount);
+
+        angleBetweenLines = PI / lineCount;
+        clockLines = createClockLines(lineCount);
+    }
+
+    function handleOffset(event: InputEvent) {
+
+        setOffsetScalar(
+            (event.target as HTMLInputElement).valueAsNumber
+        );
+    }
+
+    function reset() {
+        setOffsetScalar(1);
+        setlineCount(20);
+        angleBetweenLines = PI / 20;
+        clockLines = createClockLines(20);
+    }
+
+    return (
+        <main>
+            <section>
+
+                <canvas
+                  id="canvasTop"
+                  ref={setCanvasTop}
+                  width={canvasWidth}
+                  height={canvasHeight}
+                ></canvas>
+
+                <canvas
+                  ref={setCanvasBottom}
+                  width={canvasWidth}
+                  height={canvasHeight}
+                ></canvas>
+
+            </section>
+
+            <section id="interface">
+
+                <p> Number of lines: <span>{lineCount()}</span> </p>
+                <Slider
+                  max={200}
+                  min={1}
+                  value={lineCount()}
+                  onInput={handleLineCount}
+                />
+
+                <p> Offset: <span>{offsetScalar()}</span> </p>
+                <Slider
+                  min={0}
+                  max={10}
+                  step={0.01}
+                  value={offsetScalar()}
+                  onInput={handleOffset}
+                />
+
+                <button onClick={reset}> Reset </button>
+
+            </section>
+        </main>
     );
 }

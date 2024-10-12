@@ -5,7 +5,7 @@ export default function Slider(props: any) {
     min: 0,
     max: 100,
     step: 1,
-    value: 50, 
+    value: (props.max - props.min) / 2 + props.min,
     onInput: (e: InputEvent) => { console.log(e); }
   },props);
 

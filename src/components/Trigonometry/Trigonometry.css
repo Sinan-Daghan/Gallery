@@ -1,6 +1,45 @@
-canvas {
-    position: absolute;
+main {
+    display: flex;
+}
+section {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 #canvasTop {
     z-index: 1;
+    position: absolute;
+}
+#interface {
+    width: 12rem;
+}
+button {
+    all: unset;
+
+    user-select: none;
+    margin-top: 30px;
+    padding: 0.5rem 1rem;
+    border: 2px solid black;
+    border-radius: 5px;
+    background-color: cornflowerblue;
+}
+button:hover {
+    cursor: pointer;
+}
+button:active {
+    color: white;
+}
+p {
+    color: white;
+}
+p, button {
+    font-family: 'JetBrains', sans-serif;
+}
+span {
+    color: cornflowerblue;
+}
+input[type="range"] {
+    accent-color: cornflowerblue;
 }
